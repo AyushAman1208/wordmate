@@ -1,0 +1,109 @@
+// backend/server.js
+import express from "express";
+import { WordMateGame } from "./games/wordmate.ts";
+import { Server, Socket } from "socket.io";
+import http from 'http';
+
+const app = express();
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: { origin: "http://localhost:3000", methods: ["GET", "POST"] },
+});
+let waitingPlayer:any = null; // Stores the socket and name of the player waiting for an opponent
+const games: any = {
+
+};          // Tracks active games by gameId
+
+io.on("connection", (socket) => {
+  console.log("A user connected:", socket.id);
+
+  socket.on("joinGame", (playerName) => {
+    // Validate player name
+    if (!playerName || typeof playerName !== "string") {
+      socket.emit("errorMessage", "Invalid name. Please enter a valid name to start the game.");
+      return;
+    }
+
+    // Check if there's a player already waiting
+    if (waitingPlayer && waitingPlayer.id !== socket.id) {
+      // Pair with the waiting player
+      const gameId = `${waitingPlayer.id}-${socket.id}`;
+      const game = new WordMateGame(waitingPlayer,socket,waitingPlayer.name,playerName);
+      games[gameId] = game
+
+      // Notify both players that the game has started
+      waitingPlayer.emit("gameStarted", { gameId, opponent: playerName, symbol: "X" });
+      socket.emit("gameStarted", { gameId, opponent: waitingPlayer.name, symbol: "O" });
+
+      // Clear the waiting player as they are now in a game
+      waitingPlayer = null;
+    } else {
+      // No waiting player, so this player will wait for an opponent
+      waitingPlayer = socket;
+      waitingPlayer.name = playerName;
+      socket.emit("waitingForOpponent");
+    }
+
+    // Handle player moves
+    socket.on("makeMove", ({ gameId, row, col, move }) => {
+      const game = games[gameId];
+      
+      if (game && socket.id === game.turn && game.board[row][col] === '') {
+        game.makeMove(row,col,move);
+
+        // Emit the updated board to both players
+        game.players.forEach((player: Socket) => player.emit("updateGame", {board:game.getBoard(), playedRow: row, playedCol: col}));
+
+        // if (checkWinner(game.board)) {
+        //   // Declare the winner
+        //   game.players.forEach((player: Socket) => player.emit("gameEnded", { winner: socket.id }));
+        //   delete games[gameId]; // Clean up the game data
+        // } else if (game.board.every((cell: any) => cell !== null)) {
+        //   // Declare a draw
+        //   game.players.forEach((player: Socket) => player.emit("gameEnded", { winner: null }));
+        //   delete games[gameId]; // Clean up the game data
+        // }
+      }
+    });
+  });
+
+  // Handle player disconnect
+  socket.on("disconnect", () => {
+    console.log("User disconnected:", socket.id);
+
+    // If the disconnected player was waiting for an opponent, clear the waiting player
+    if (waitingPlayer && waitingPlayer.id === socket.id) {
+      waitingPlayer = null;
+    }
+
+    // Remove player from any ongoing game they were part of
+    for (const gameId in games) {
+      const game = games[gameId];
+      if (game.players.some((player: Socket) => player.id === socket.id)) {
+        // Notify the other player of the disconnection
+        game.players.forEach((player: Socket) => {
+          if (player.id !== socket.id) player.emit("gameEnded", { winner: null });
+        });
+        delete games[gameId]; // Clean up the game data
+        break;
+      }
+    }
+  });
+});
+
+function checkWinner(board: any) {
+  const winningCombos = [
+    [0, 1, 2], [3, 4, 5], [6, 7, 8], // Rows
+    [0, 3, 6], [1, 4, 7], [2, 5, 8], // Columns
+    [0, 4, 8], [2, 4, 6],           // Diagonals
+  ];
+  return winningCombos.some((combo) => {
+    const [a, b, c] = combo;
+    return board[a] && board[a] === board[b] && board[a] === board[c];
+  });
+}
+
+const PORT = process.env.PORT || 4000;
+server.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+});
