@@ -55,12 +55,12 @@ export class WordMateGame {
   public makeMove(row: number, col: number, move: string) {
     this.board[row][col] = move;
     this.moves.push([row, col, move]);
+    this.scoringMechanism(row, col, move);
     if (this.turn === this.player1.id) {
       this.turn = this.player2.id;
     } else if (this.turn === this.player2.id) {
       this.turn = this.player1.id;
     }
-    this.scoringMechanism(row, col, move);
     if(this.moves.length === 64){
       this.end = true;
     }

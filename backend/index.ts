@@ -2,17 +2,15 @@
 import express from "express";
 import { WordMateGame } from "./games/wordmate.ts";
 import { Server, Socket } from "socket.io";
-import http from 'http';
+import http from "http";
 
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: { origin: "http://localhost:3000", methods: ["GET", "POST"] },
 });
-let waitingPlayer:any = null; // Stores the socket and name of the player waiting for an opponent
-const games: any = {
-
-};          // Tracks active games by gameId
+let waitingPlayer: any = null; // Stores the socket and name of the player waiting for an opponent
+const games: any = {}; // Tracks active games by gameId
 
 io.on("connection", (socket) => {
   console.log("A user connected:", socket.id);
@@ -20,7 +18,10 @@ io.on("connection", (socket) => {
   socket.on("joinGame", (playerName) => {
     // Validate player name
     if (!playerName || typeof playerName !== "string") {
-      socket.emit("errorMessage", "Invalid name. Please enter a valid name to start the game.");
+      socket.emit(
+        "errorMessage",
+        "Invalid name. Please enter a valid name to start the game."
+      );
       return;
     }
 
@@ -28,12 +29,29 @@ io.on("connection", (socket) => {
     if (waitingPlayer && waitingPlayer.id !== socket.id) {
       // Pair with the waiting player
       const gameId = `${waitingPlayer.id}-${socket.id}`;
-      const game = new WordMateGame(waitingPlayer,socket,waitingPlayer.name,playerName);
-      games[gameId] = game
+      const game = new WordMateGame(
+        waitingPlayer,
+        socket,
+        waitingPlayer.name,
+        playerName
+      );
+      games[gameId] = game;
 
       // Notify both players that the game has started
-      waitingPlayer.emit("gameStarted", { gameId, opponent: playerName, symbol: "X" });
-      socket.emit("gameStarted", { gameId, opponent: waitingPlayer.name, symbol: "O" });
+      waitingPlayer.emit("gameStarted", {
+        gameId,
+        opponent: playerName,
+        symbol: "X",
+        player1Name: game.player1Name,
+        player2Name: game.player2Name,
+      });
+      socket.emit("gameStarted", {
+        gameId,
+        opponent: waitingPlayer.name,
+        symbol: "O",
+        player1Name: game.player1Name,
+        player2Name: game.player2Name,
+      });
 
       // Clear the waiting player as they are now in a game
       waitingPlayer = null;
@@ -47,12 +65,18 @@ io.on("connection", (socket) => {
     // Handle player moves
     socket.on("makeMove", ({ gameId, row, col, move }) => {
       const game = games[gameId];
-      
-      if (game && socket.id === game.turn && game.board[row][col] === '') {
-        game.makeMove(row,col,move);
+
+      if (game && socket.id === game.turn && game.board[row][col] === "") {
+        game.makeMove(row, col, move);
 
         // Emit the updated board to both players
-        game.players.forEach((player: Socket) => player.emit("updateGame", {board:game.getBoard(), playedRow: row, playedCol: col}));
+        game.players.forEach((player: Socket) =>
+          player.emit("updateGame", {
+            board: game.getBoard(),
+            playedRow: row,
+            playedCol: col,
+          })
+        );
 
         // if (checkWinner(game.board)) {
         //   // Declare the winner
@@ -63,8 +87,10 @@ io.on("connection", (socket) => {
         //   game.players.forEach((player: Socket) => player.emit("gameEnded", { winner: null }));
         //   delete games[gameId]; // Clean up the game data
         // }
-        if(game.isGameOver()){
-          game.players.forEach((player: Socket) => player.emit("gameEnded", { winner: game.getWinner() }));
+        if (game.isGameOver()) {
+          game.players.forEach((player: Socket) =>
+            player.emit("gameEnded", { winner: game.getWinner() })
+          );
           delete games[gameId]; // Clean up the game data
         }
       }
@@ -86,7 +112,8 @@ io.on("connection", (socket) => {
       if (game.players.some((player: Socket) => player.id === socket.id)) {
         // Notify the other player of the disconnection
         game.players.forEach((player: Socket) => {
-          if (player.id !== socket.id) player.emit("gameEnded", { winner: null });
+          if (player.id !== socket.id)
+            player.emit("gameEnded", { winner: null });
         });
         delete games[gameId]; // Clean up the game data
         break;
@@ -94,18 +121,6 @@ io.on("connection", (socket) => {
     }
   });
 });
-
-function checkWinner(board: any) {
-  const winningCombos = [
-    [0, 1, 2], [3, 4, 5], [6, 7, 8], // Rows
-    [0, 3, 6], [1, 4, 7], [2, 5, 8], // Columns
-    [0, 4, 8], [2, 4, 6],           // Diagonals
-  ];
-  return winningCombos.some((combo) => {
-    const [a, b, c] = combo;
-    return board[a] && board[a] === board[b] && board[a] === board[c];
-  });
-}
 
 const PORT = process.env.PORT || 4000;
 server.listen(PORT, () => {

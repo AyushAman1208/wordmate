@@ -10,6 +10,8 @@ interface GameStartedEvent {
   gameId: string;
   opponent: string;
   symbol: string;
+  player1Name: string;
+  player2Name: string;
 }
 
 interface GameEndedEvent {
@@ -41,11 +43,14 @@ export default function GamePage() {
     // Listen for events from the server
     socket.on("waitingForOpponent", () => setMessage("Waiting for an opponent..."));
 
-    socket.on("gameStarted", ({ gameId, opponent, symbol }: GameStartedEvent) => {
+    socket.on("gameStarted", ({ gameId, opponent, symbol,player1Name,player2Name }: GameStartedEvent) => {
       setGameStarted(true);
       setMessage(`Game started! You're playing as ${symbol} against ${opponent}.`);
       setSymbol(symbol);
       setGameId(gameId);
+      setPlayer1Name(player1Name)
+      setPlayer2Name(player2Name)
+    
     });
 
     socket.on("updateGame", (updatedBoard: (string | null)[]) => {
@@ -66,10 +71,7 @@ export default function GamePage() {
       setScorePlayer2(player2Score)
       setScoreSeqPlayer1(scoreSeqPlayer1)
       setScoreSeqPlayer2(scoreSeqPlayer2)
-      setPlayer1Name(player1Name)
-      setPlayer2Name(player2Name)
       setWordsFormed(wordsFormed)
-      console.log(wordsFormed)
     })
 
     socket.on("errorMessage", (msg: string) => alert(msg));
@@ -104,14 +106,20 @@ export default function GamePage() {
       <Navbar/>
       {!gameStarted && (
         <div>
-          <input
-            type="text"
-            value={playerName}
-            onChange={(e) => setPlayerName(e.target.value)}
-            placeholder="Enter your name"
-          />
-          <button onClick={startGame}>Start Game</button>
-        </div>
+        <input
+          type="text"
+          value={playerName}
+          onChange={(e) => setPlayerName(e.target.value)}
+          placeholder="Enter your name"
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              startGame();
+            }
+          }}
+        />
+        <button onClick={startGame}>Start Game</button>
+      </div>     
       )}
       <h2>{message}</h2>
       {gameStarted && (
