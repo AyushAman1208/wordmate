@@ -61,6 +61,9 @@ export class WordMateGame {
       this.turn = this.player1.id;
     }
     this.scoringMechanism(row, col, move);
+    if(this.moves.length === 64){
+      this.end = true;
+    }
   }
   public getScore(player: any): number {
     if (player === this.player1) {
@@ -196,5 +199,12 @@ export class WordMateGame {
   }
   public isWord(word: string) {
     return allWords.hasOwnProperty(word.toLowerCase()) && word.length >= 3;
+  }
+
+  public getWinner() {
+    if (this.scoreplayer1 > this.scoreplayer2) {
+      return this.player1.id;
+    }
+    return this.player2.id;
   }
 }

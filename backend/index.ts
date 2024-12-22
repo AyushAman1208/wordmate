@@ -63,6 +63,10 @@ io.on("connection", (socket) => {
         //   game.players.forEach((player: Socket) => player.emit("gameEnded", { winner: null }));
         //   delete games[gameId]; // Clean up the game data
         // }
+        if(game.isGameOver()){
+          game.players.forEach((player: Socket) => player.emit("gameEnded", { winner: game.getWinner() }));
+          delete games[gameId]; // Clean up the game data
+        }
       }
     });
   });
