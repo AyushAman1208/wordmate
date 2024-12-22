@@ -8,7 +8,7 @@ export class WordMateGame {
   public player2: Socket;
   public player1Name: string = "";
   public player2Name: string = "";
-  public players: Array<Socket> = []
+  public players: Array<Socket> = [];
   private moves: Array<any> = [];
   private scoreplayer1 = 0;
   private scoreplayer2 = 0;
@@ -30,13 +30,18 @@ export class WordMateGame {
     ["", "", "", "", "", "", "", ""],
   ];
 
-  constructor(player1: any, player2: any,player1Name: string,player2Name: string) {
+  constructor(
+    player1: any,
+    player2: any,
+    player1Name: string,
+    player2Name: string
+  ) {
     this.player1Name = player1Name;
-    this.player2Name = player2Name
+    this.player2Name = player2Name;
     this.player1 = player1;
     this.player2 = player2;
-    this.turn = player1.id
-    this.players = [player1, player2]
+    this.turn = player1.id;
+    this.players = [player1, player2];
   }
 
   public getTurn(): string {
@@ -47,8 +52,6 @@ export class WordMateGame {
     return this.end;
   }
 
-
-
   public makeMove(row: number, col: number, move: string) {
     this.board[row][col] = move;
     this.moves.push([row, col, move]);
@@ -58,7 +61,6 @@ export class WordMateGame {
       this.turn = this.player1.id;
     }
     this.scoringMechanism(row, col, move);
-    console.log(this)
   }
   public getScore(player: any): number {
     if (player === this.player1) {
@@ -83,6 +85,7 @@ export class WordMateGame {
     this.wordsUsed.push(word);
   }
   private scoringMechanism(row: number, col: number, move: string) {
+    const currWords: Array<string> = [];
 
     // horizontal
     for (let i = 0; i <= col; i++) {
@@ -92,17 +95,30 @@ export class WordMateGame {
       }
       if (this.isWord(currStr) && this.wordsUsed.includes(currStr) === false) {
         this.handleScoreUpdate(currStr);
+        currWords.push(currStr);
       }
-      if (this.isWord(reverseString(currStr)) && this.wordsUsed.includes(reverseString(currStr)) === false) {
+      if (
+        this.isWord(reverseString(currStr)) &&
+        this.wordsUsed.includes(reverseString(currStr)) === false
+      ) {
         this.handleScoreUpdate(reverseString(currStr));
+        currWords.push(reverseString(currStr));
       }
       for (let j = col + 1; j < 8; j++) {
         currStr += this.board[row][j];
-        if (this.isWord(currStr) && this.wordsUsed.includes(currStr) === false) {
+        if (
+          this.isWord(currStr) &&
+          this.wordsUsed.includes(currStr) === false
+        ) {
           this.handleScoreUpdate(currStr);
+          currWords.push(currStr);
         }
-        if (this.isWord(reverseString(currStr)) && this.wordsUsed.includes(reverseString(currStr)) === false) {
+        if (
+          this.isWord(reverseString(currStr)) &&
+          this.wordsUsed.includes(reverseString(currStr)) === false
+        ) {
           this.handleScoreUpdate(reverseString(currStr));
+          currWords.push(reverseString(currStr));
         }
       }
     }
@@ -115,17 +131,30 @@ export class WordMateGame {
       }
       if (this.isWord(currStr) && this.wordsUsed.includes(currStr) === false) {
         this.handleScoreUpdate(currStr);
+        currWords.push(currStr);
       }
-      if (this.isWord(reverseString(currStr)) && this.wordsUsed.includes(reverseString(currStr)) === false) {
+      if (
+        this.isWord(reverseString(currStr)) &&
+        this.wordsUsed.includes(reverseString(currStr)) === false
+      ) {
         this.handleScoreUpdate(reverseString(currStr));
+        currWords.push(reverseString(currStr));
       }
       for (let j = row + 1; j < 8; j++) {
         currStr += this.board[j][col];
-        if (this.isWord(currStr) && this.wordsUsed.includes(currStr) === false) {
+        if (
+          this.isWord(currStr) &&
+          this.wordsUsed.includes(currStr) === false
+        ) {
           this.handleScoreUpdate(currStr);
+          currWords.push(currStr);
         }
-        if (this.isWord(reverseString(currStr)) && this.wordsUsed.includes(reverseString(currStr)) === false) {
+        if (
+          this.isWord(reverseString(currStr)) &&
+          this.wordsUsed.includes(reverseString(currStr)) === false
+        ) {
           this.handleScoreUpdate(reverseString(currStr));
+          currWords.push(reverseString(currStr));
         }
       }
     }
@@ -137,18 +166,35 @@ export class WordMateGame {
         for (let k = i, l = j; k <= row && l <= col; k++, l++) {
           currStr += this.board[k][l];
         }
-        if (this.isWord(currStr) && this.wordsUsed.includes(currStr) === false) {
+        if (
+          this.isWord(currStr) &&
+          this.wordsUsed.includes(currStr) === false
+        ) {
           this.handleScoreUpdate(currStr);
+          currWords.push(currStr);
         }
-        if (this.isWord(reverseString(currStr)) && this.wordsUsed.includes(reverseString(currStr)) === false) {
+        if (
+          this.isWord(reverseString(currStr)) &&
+          this.wordsUsed.includes(reverseString(currStr)) === false
+        ) {
           this.handleScoreUpdate(reverseString(currStr));
+          currWords.push(reverseString(currStr));
         }
       }
     }
-    //to be added later
-    this.players.forEach((player: Socket) => player.emit("updateScore", { player1Name: this.player1Name, player2Name: this.player2Name, player1Score: this.scoreplayer1, player2Score: this.scoreplayer2, scoreSeqPlayer1: this.pointSeqPlayer1, scoreSeqPlayer2: this.pointSeqPlayer2 }));
+    this.players.forEach((player: Socket) =>
+      player.emit("updateScore", {
+        player1Name: this.player1Name,
+        player2Name: this.player2Name,
+        player1Score: this.scoreplayer1,
+        player2Score: this.scoreplayer2,
+        scoreSeqPlayer1: this.pointSeqPlayer1,
+        scoreSeqPlayer2: this.pointSeqPlayer2,
+        wordsFormed: currWords,
+      })
+    );
   }
   public isWord(word: string) {
-    return allWords.hasOwnProperty(word.toLowerCase());
+    return allWords.hasOwnProperty(word.toLowerCase()) && word.length >= 3;
   }
 }
