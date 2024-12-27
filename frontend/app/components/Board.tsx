@@ -1,7 +1,9 @@
 import { Socket } from 'socket.io-client';
 import InputBox from "./InputBox";
-
+import { useContext } from 'react';
+import { TurnContext } from '../providers/TurnProvider';
 function Board({socket,gameId}:{socket:Socket, gameId:string|null}) {
+  const {turn, setTurn} = useContext(TurnContext);
     let arr = [1,2,3,4,5,6,7,8]
   return (
     <>

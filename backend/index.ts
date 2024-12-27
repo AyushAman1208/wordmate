@@ -44,6 +44,7 @@ io.on("connection", (socket) => {
         symbol: "X",
         player1Name: game.player1Name,
         player2Name: game.player2Name,
+        turn: game.getTurn(),
       });
       socket.emit("gameStarted", {
         gameId,
@@ -51,6 +52,7 @@ io.on("connection", (socket) => {
         symbol: "O",
         player1Name: game.player1Name,
         player2Name: game.player2Name,
+        turn: game.getTurn(),
       });
 
       // Clear the waiting player as they are now in a game
@@ -62,6 +64,23 @@ io.on("connection", (socket) => {
       socket.emit("waitingForOpponent");
     }
 
+    socket.on("resign", ({ gameId,resigningPlayer }) => {
+      const game = games[gameId];
+    
+      if (game) {
+        // Notify the opponent that the player has resigned
+        game.players.forEach((player: Socket) => {
+          if (player.id !== resigningPlayer) {
+            game.winner = player.id;
+            console.log(game.winner)
+            player.emit("opponentResigned", { msg: "Your opponent has resigned. You win!" });
+          }
+        });
+    
+        // Clean up the game data
+        delete games[gameId];
+      }
+    });
     // Handle player moves
     socket.on("makeMove", ({ gameId, row, col, move }) => {
       const game = games[gameId];
@@ -75,18 +94,9 @@ io.on("connection", (socket) => {
             board: game.getBoard(),
             playedRow: row,
             playedCol: col,
+            turn: game.turn,
           })
         );
-
-        // if (checkWinner(game.board)) {
-        //   // Declare the winner
-        //   game.players.forEach((player: Socket) => player.emit("gameEnded", { winner: socket.id }));
-        //   delete games[gameId]; // Clean up the game data
-        // } else if (game.board.every((cell: any) => cell !== null)) {
-        //   // Declare a draw
-        //   game.players.forEach((player: Socket) => player.emit("gameEnded", { winner: null }));
-        //   delete games[gameId]; // Clean up the game data
-        // }
         if (game.isGameOver()) {
           game.players.forEach((player: Socket) =>
             player.emit("gameEnded", { winner: game.getWinner() })

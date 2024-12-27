@@ -1,8 +1,9 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import { Socket } from 'socket.io-client';
 
-function InputBox({ row, col, socket, gameId }: { row: number, col: number, socket: Socket, gameId: string | null }) {
+import { TurnContext } from '../providers/TurnProvider';
+function InputBox({ row, col, socket, gameId}: { row: number, col: number, socket: Socket, gameId: string | null}) {
   const color =
     (row % 2 === 0 && col % 2 == 0) ||
       (row % 2 !== 0 && col % 2 !== 0)
@@ -10,12 +11,13 @@ function InputBox({ row, col, socket, gameId }: { row: number, col: number, sock
       : "bg-white";
   const [inputStatus, setInputStatus] = useState(false);
   const [inputValue, setInputValue] = useState("");
-  const [turn, setTurn] = useState(false)
-  socket.on("updateGame", ({ board, playedRow, playedCol }) => {
+  const {turn, setTurn} = useContext(TurnContext);
+  socket.on("updateGame", ({ board, playedRow, playedCol, turn }) => {
     if (playedCol == col - 1 && playedRow == row - 1) {
       setInputStatus(true)
       setInputValue(board[row - 1][col - 1])
     }
+    setTurn(turn)
   })
 
   return (
@@ -30,7 +32,7 @@ function InputBox({ row, col, socket, gameId }: { row: number, col: number, sock
       >
         <input
           value={inputValue}
-          disabled={inputStatus}
+          disabled={inputStatus || turn !== socket.id}
           onChange={(e) => {
             setInputValue(
               e.target.value[e.target.value.length - 1].toUpperCase()
