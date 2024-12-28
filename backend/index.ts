@@ -3,11 +3,12 @@ import express from "express";
 import { WordMateGame } from "./games/wordmate.ts";
 import { Server, Socket } from "socket.io";
 import http from "http";
+import 'dotenv/config'
 
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
-  cors: { origin: "http://localhost:3000", methods: ["GET", "POST"] },
+  cors: { origin: process.env.FRONTEND_URL, methods: ["GET", "POST"] },
 });
 let waitingPlayer: any = null; // Stores the socket and name of the player waiting for an opponent
 const games: any = {}; // Tracks active games by gameId

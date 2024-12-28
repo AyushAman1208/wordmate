@@ -90,115 +90,81 @@ export class WordMateGame {
   private scoringMechanism(row: number, col: number, move: string) {
     const currWords: Array<string> = [];
 
-    // horizontal
-    for (let i = 0; i <= col; i++) {
-      let currStr = "";
-      for (let k = i; k <= col; k++) {
-        currStr += this.board[row][k];
-      }
-      if (this.isWord(currStr) && this.wordsUsed.includes(currStr) === false) {
-        this.handleScoreUpdate(currStr);
-        currWords.push(currStr);
-      }
-      if (
-        this.isWord(reverseString(currStr)) &&
-        this.wordsUsed.includes(reverseString(currStr)) === false
-      ) {
-        this.handleScoreUpdate(reverseString(currStr));
-        currWords.push(reverseString(currStr));
-      }
-      for (let j = col + 1; j < 8; j++) {
-        currStr += this.board[row][j];
-        if (
-          this.isWord(currStr) &&
-          this.wordsUsed.includes(currStr) === false
-        ) {
-          this.handleScoreUpdate(currStr);
-          currWords.push(currStr);
+    // Helper function to process a word and its reverse
+    const processWord = (word: string) => {
+        if (this.isWord(word) && !this.wordsUsed.includes(word)) {
+            this.handleScoreUpdate(word);
+            currWords.push(word);
         }
-        if (
-          this.isWord(reverseString(currStr)) &&
-          this.wordsUsed.includes(reverseString(currStr)) === false
-        ) {
-          this.handleScoreUpdate(reverseString(currStr));
-          currWords.push(reverseString(currStr));
+        const reversed = reverseString(word);
+        if (this.isWord(reversed) && !this.wordsUsed.includes(reversed)) {
+            this.handleScoreUpdate(reversed);
+            currWords.push(reversed);
         }
-      }
-    }
+    };
 
-    //verticle
-    for (let i = 0; i <= row; i++) {
-      let currStr = "";
-      for (let k = i; k <= row; k++) {
-        currStr += this.board[k][col];
-      }
-      if (this.isWord(currStr) && this.wordsUsed.includes(currStr) === false) {
-        this.handleScoreUpdate(currStr);
-        currWords.push(currStr);
-      }
-      if (
-        this.isWord(reverseString(currStr)) &&
-        this.wordsUsed.includes(reverseString(currStr)) === false
-      ) {
-        this.handleScoreUpdate(reverseString(currStr));
-        currWords.push(reverseString(currStr));
-      }
-      for (let j = row + 1; j < 8; j++) {
-        currStr += this.board[j][col];
-        if (
-          this.isWord(currStr) &&
-          this.wordsUsed.includes(currStr) === false
-        ) {
-          this.handleScoreUpdate(currStr);
-          currWords.push(currStr);
-        }
-        if (
-          this.isWord(reverseString(currStr)) &&
-          this.wordsUsed.includes(reverseString(currStr)) === false
-        ) {
-          this.handleScoreUpdate(reverseString(currStr));
-          currWords.push(reverseString(currStr));
-        }
-      }
-    }
-
-    //diagonal
-    for (let i = 0; i <= row; i++) {
-      for (let j = 0; j <= col; j++) {
+    // Process horizontal words
+    for (let startCol = 0; startCol <= col; startCol++) {
         let currStr = "";
-        for (let k = i, l = j; k <= row && l <= col; k++, l++) {
-          currStr += this.board[k][l];
+        for (let endCol = startCol; endCol < 8; endCol++) {
+            currStr += this.board[row][endCol];
+            processWord(currStr);
         }
-        if (
-          this.isWord(currStr) &&
-          this.wordsUsed.includes(currStr) === false
-        ) {
-          this.handleScoreUpdate(currStr);
-          currWords.push(currStr);
-        }
-        if (
-          this.isWord(reverseString(currStr)) &&
-          this.wordsUsed.includes(reverseString(currStr)) === false
-        ) {
-          this.handleScoreUpdate(reverseString(currStr));
-          currWords.push(reverseString(currStr));
-        }
-      }
     }
+
+    // Process vertical words
+    for (let startRow = 0; startRow <= row; startRow++) {
+        let currStr = "";
+        for (let endRow = startRow; endRow < 8; endRow++) {
+            currStr += this.board[endRow][col];
+            processWord(currStr);
+        }
+    }
+
+    // Process diagonal words
+    const processDiagonal = (startRow: number, startCol: number, rowStep: number, colStep: number) => {
+        let currStr = "";
+        let r = startRow, c = startCol;
+        while (r >= 0 && r < 8 && c >= 0 && c < 8) {
+            currStr += this.board[r][c];
+            processWord(currStr);
+            r += rowStep;
+            c += colStep;
+        }
+    };
+
+    // Diagonals (down-right)
+    for (let startRow = 0; startRow <= row; startRow++) {
+        processDiagonal(startRow, 0, 1, 1);
+    }
+    for (let startCol = 1; startCol <= col; startCol++) {
+        processDiagonal(0, startCol, 1, 1);
+    }
+
+    // Diagonals (up-right)
+    for (let startRow = row; startRow < 8; startRow++) {
+        processDiagonal(startRow, 0, -1, 1);
+    }
+    for (let startCol = 1; startCol <= col; startCol++) {
+        processDiagonal(7, startCol, -1, 1);
+    }
+
+    // Emit the updated scores and words
     this.players.forEach((player: Socket) =>
-      player.emit("updateScore", {
-        player1Name: this.player1Name,
-        player2Name: this.player2Name,
-        player1Score: this.scoreplayer1,
-        player2Score: this.scoreplayer2,
-        scoreSeqPlayer1: this.pointSeqPlayer1,
-        scoreSeqPlayer2: this.pointSeqPlayer2,
-        wordsFormed: currWords,
-      })
+        player.emit("updateScore", {
+            player1Name: this.player1Name,
+            player2Name: this.player2Name,
+            player1Score: this.scoreplayer1,
+            player2Score: this.scoreplayer2,
+            scoreSeqPlayer1: this.pointSeqPlayer1,
+            scoreSeqPlayer2: this.pointSeqPlayer2,
+            wordsFormed: currWords,
+        })
     );
-  }
+}
+
   public isWord(word: string) {
-    return allWords.hasOwnProperty(word.toLowerCase()) && word.length >= 3;
+    return allWords.hasOwnProperty(word.toLowerCase()) && word.length >= 2;
   }
 
   public getWinner() {

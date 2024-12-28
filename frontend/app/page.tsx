@@ -41,9 +41,24 @@ export default function GamePage() {
   const [player2Name, setPlayer2Name] = useState<string>("");
   const [wordsFormed, setWordsFormed] = useState<string[]>([]);
 
+  const gameEndCleanup = () => {
+    setGameStarted(false);
+    setBoard(Array(64).fill(null));
+    setSymbol("");
+    setGameId(null);
+    setPlayer1Name("");
+    setPlayer2Name("");
+    setTurn("");
+    setScorePlayer1(0);
+    setScorePlayer2(0);
+    setScoreSeqPlayer1([]);
+    setScoreSeqPlayer2([]);
+    setWordsFormed([]);
+  };
+
   useEffect(() => {
     // Initialize socket connection
-    socket = io("http://localhost:4000");
+    socket = io(process.env.SOCKET_URL);
 
     // Listen for events from the server
     socket.on("waitingForOpponent", () =>
@@ -82,7 +97,7 @@ export default function GamePage() {
       } else {
         setMessage("It's a draw!");
       }
-      setGameStarted(false);
+      gameEndCleanup()
     });
 
     socket.on(
@@ -109,6 +124,7 @@ export default function GamePage() {
       
       setGameStarted(false);
       setMessage("Your opponent has resigned. You win!");
+      gameEndCleanup();
     });
 
     // Cleanup on component unmount
@@ -163,6 +179,7 @@ export default function GamePage() {
                   socket.emit("resign", { gameId, resigningPlayer: socket.id });
                   setGameStarted(false); // Reset the game state on resign
                   setMessage("You have resigned. Your opponent wins.");
+                  gameEndCleanup();
                 }
               }}
               className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded mt-4"
