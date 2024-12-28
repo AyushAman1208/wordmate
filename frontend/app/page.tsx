@@ -26,11 +26,11 @@ export default function GamePage() {
   const [message, setMessage] = useState<string>(
     "Enter your name to start the game."
   );
-  const {turn, setTurn} = useContext(TurnContext);
+  const { setTurn} = useContext(TurnContext);
   const [playerName, setPlayerName] = useState<string>("  ");
   const [gameStarted, setGameStarted] = useState<boolean>(false);
-  const [board, setBoard] = useState<(string | null)[]>(Array(64).fill(null));
-  const [symbol, setSymbol] = useState<string>("");
+  const [, setBoard] = useState<(string | null)[]>(Array(64).fill(null));
+  const [, setSymbol] = useState<string>("");
   const [gameId, setGameId] = useState<string | null>(null);
   const [scorePlayer1, setScorePlayer1] = useState<number>(0);
   const [scorePlayer2, setScorePlayer2] = useState<number>(0);
