@@ -32,7 +32,6 @@ export default function GamePage() {
   const [board, setBoard] = useState<(string | null)[]>(Array(64).fill(null));
   const [symbol, setSymbol] = useState<string>("");
   const [gameId, setGameId] = useState<string | null>(null);
-  const [value, setValue] = useState<string>("");
   const [scorePlayer1, setScorePlayer1] = useState<number>(0);
   const [scorePlayer2, setScorePlayer2] = useState<number>(0);
   const [scoreSeqPlayer1, setScoreSeqPlayer1] = useState<number[]>([]);
@@ -103,8 +102,6 @@ export default function GamePage() {
     socket.on(
       "updateScore",
       ({
-        player1Name,
-        player2Name,
         player1Score,
         player2Score,
         scoreSeqPlayer1,
@@ -123,7 +120,7 @@ export default function GamePage() {
     socket.on("opponentResigned", (msg: string) => {
       
       setGameStarted(false);
-      setMessage("Your opponent has resigned. You win!");
+      setMessage(msg);
       gameEndCleanup();
     });
 
@@ -137,10 +134,7 @@ export default function GamePage() {
       socket.off("opponentResigned");
       socket.disconnect();
     };
-  }, []);
-
- 
-
+  }, [gameEndCleanup,setTurn]);
   const startGame = (): void => {
     if (playerName.trim()) {
       socket.emit("joinGame", playerName);

@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState, useContext } from "react";
+import { useState, useContext } from "react";
 import { Socket } from 'socket.io-client';
 
 import { TurnContext } from '../providers/TurnProvider';

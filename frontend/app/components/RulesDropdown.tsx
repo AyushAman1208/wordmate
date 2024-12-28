@@ -20,15 +20,15 @@ const RulesDropdown = () => {
         {isDropdownOpen && (
           <div className="absolute mt-2 bg-white text-gray-800 border border-gray-200 rounded shadow-lg w-72 p-4 z-10 overflow-x-scroll" style={{ right: '-0.5rem' }}>
             <ul className="list-disc pl-5 space-y-2">
-              <li>Enter an alphabet in any of the cells when it's your turn.</li>
+              <li>Enter an alphabet in any of the cells when it&apos;s your turn.</li>
               <li>
                 If your alphabet forms words in vertical, horizontal or diagonal
                 directions, forward or backward, you get points equal to the
                 length of the word.
               </li>
               <li>
-                Words can't be repeated. You can enter letters to repeat words
-                but you won't get points if the word(s) so formed was already
+                Words can&apos;t be repeated. You can enter letters to repeat words
+                but you won&apos;t get points if the word(s) so formed was already
                 scored.
               </li>
               <li>

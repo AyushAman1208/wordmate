@@ -1,6 +1,5 @@
 "use client";
 import { createContext,useState } from "react";
-import { Socket } from "socket.io-client";
 
 export const TurnContext = createContext<{
     turn: string | null;
@@ -10,7 +9,7 @@ export const TurnContext = createContext<{
     setTurn: (player) => {return player},
   });
 
-export function TurnContextProvider(props:any){
+export function TurnContextProvider(props:{children:React.ReactNode}) {
     const [turn,setTurn]=useState<string | null>(null)
     function setTurnHandler(player:string){
         setTurn(player)

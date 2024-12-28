@@ -17,6 +17,8 @@ io.on("connection", (socket) => {
   console.log("A user connected:", socket.id);
 
   socket.on("joinGame", (playerName) => {
+    console.log("Player joined the game:", playerName);
+
     // Validate player name
     if (!playerName || typeof playerName !== "string") {
       socket.emit(
