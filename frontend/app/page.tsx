@@ -214,7 +214,7 @@ export default function GamePage() {
                 Start Game
               </button>
             </form>
-            {message && <p>{message}</p>}
+            {message && <p>{message + "test" + process.env.SOCKET_URL}</p>}
           </div>
         )}
       </div>
