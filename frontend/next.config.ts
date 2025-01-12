@@ -1,5 +1,5 @@
 module.exports = {
   env: {
-    "SOCKET_URL": "https://vercel.com/ayush-amans-projects/wordmate-server/6ZojdGSuoVKYpNGg22dbVwwcsmpa" 
+    "SOCKET_URL": "https://wordmate-server-5swkptsl2-ayush-amans-projects.vercel.app/" 
   },
 }
