@@ -7,7 +7,7 @@ import 'dotenv/config'
 import cors from "cors";
 
 const app = express();
-const server = http.createServer(app);
+
 app.use(
   cors({
     origin: '*', // Replace with your frontend URL
@@ -15,6 +15,7 @@ app.use(
     credentials: true, // If you're using cookies or authentication
   })
 );
+const server = http.createServer(app);
 const io = new Server(server, {
   cors: { origin: "*", methods: ["GET", "POST"] },
 });
