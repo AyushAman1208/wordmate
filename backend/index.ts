@@ -4,9 +4,17 @@ import { WordMateGame } from "./games/wordmate.ts";
 import { Server, Socket } from "socket.io";
 import http from "http";
 import 'dotenv/config'
+import cors from "cors";
 
 const app = express();
 const server = http.createServer(app);
+app.use(
+  cors({
+    origin: '*', // Replace with your frontend URL
+    methods: ['GET', 'POST', 'PUT', 'DELETE'], // Include allowed HTTP methods
+    credentials: true, // If you're using cookies or authentication
+  })
+);
 const io = new Server(server, {
   cors: { origin: "*", methods: ["GET", "POST"] },
 });
