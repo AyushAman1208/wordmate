@@ -15,6 +15,9 @@ app.use(
     credentials: true, // If you're using cookies or authentication
   })
 );
+app.get("/", (req, res) => {
+  res.send("Hello, World!");
+})
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: { origin: "*", methods: ["GET", "POST"] },
